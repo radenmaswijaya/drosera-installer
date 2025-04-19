@@ -3,6 +3,17 @@
 set -e
 
 echo ">>> Drosera Node Auto Installer"
+
+# 1. Input user
+read -p "Masukkan email GitHub Anda: " GITHUB_EMAIL
+read -p "Masukkan username GitHub Anda: " GITHUB_USERNAME
+read -p "Masukkan PRIVATE KEY Anda (0x...): " PRIVATE_KEY
+read -p "Masukkan ADDRESS wallet Anda (0x...): " ADDRESS
+
+# Validasi input
+[[ $PRIVATE_KEY != 0x* ]] && { echo "PRIVATE KEY harus diawali 0x"; exit 1; }
+[[ $ADDRESS != 0x* ]] && { echo "ADDRESS harus diawali 0x"; exit 1; }
+
 echo ">>> Updating dependencies..."
 apt update && apt install -y curl git sudo
 
@@ -21,6 +32,14 @@ rm -rf drosera-nodes
 git clone https://github.com/radenmaswijaya/drosera-nodes.git
 cd drosera-nodes
 
+echo ">>> Membuat file .env..."
+cat <<EOF > .env
+GITHUB_EMAIL=$GITHUB_EMAIL
+GITHUB_USERNAME=$GITHUB_USERNAME
+PRIVATE_KEY=$PRIVATE_KEY
+ADDRESS=$ADDRESS
+EOF
+
 echo ">>> Installing dependencies..."
 export PATH="$HOME/.bun/bin:$PATH"
 bun install
@@ -35,7 +54,7 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=/root/drosera-nodes
-ExecStart=/bin/bash -lc "bun deploy-trap.ts"
+ExecStart=/bin/bash -lc \"bun deploy-trap.ts\"
 Restart=always
 RestartSec=3
 
